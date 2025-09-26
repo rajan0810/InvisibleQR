@@ -10,33 +10,9 @@
 		5242FFEE2E86F6A90070E046 /* InvisibleQR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InvisibleQR.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		524200352E8710FE0070E046 /* Exceptions for "InvisibleQR" folder in "InvisibleQR" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Models/InvisibleQR.xcdatamodeld,
-			);
-			target = 5242FFED2E86F6A90070E046 /* InvisibleQR */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		524200362E8710FE0070E046 /* Exceptions for "InvisibleQR" folder in "Compile Sources" phase from "InvisibleQR" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = 5242FFEA2E86F6A90070E046 /* Sources */;
-			membershipExceptions = (
-				Models/InvisibleQR.xcdatamodeld,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5242FFF02E86F6A90070E046 /* InvisibleQR */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				524200352E8710FE0070E046 /* Exceptions for "InvisibleQR" folder in "InvisibleQR" target */,
-				524200362E8710FE0070E046 /* Exceptions for "InvisibleQR" folder in "Compile Sources" phase from "InvisibleQR" target */,
-			);
 			path = InvisibleQR;
 			sourceTree = "<group>";
 		};

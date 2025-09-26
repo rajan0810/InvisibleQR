@@ -1,131 +1,105 @@
+// Views/MessageRevealView.swift
+
 import SwiftUI
 
 struct MessageRevealView: View {
-    @State private var capturedImage: UIImage?
-    @State private var isAnalyzing = false
-    @State private var isScanning = false
-    @State private var foundMessage: String = ""
-    @State private var showingMessage = false
-    @State private var currentFingerprint = ""
-    @State private var confidenceScore: Double = 0.0
-    
-    @StateObject private var textureAnalyzer = TextureAnalyzer()
-    @EnvironmentObject var coreDataManager: CoreDataManager
+    // This toggle lets us switch between the two UI states in the preview.
+    @State private var isMessageFound: Bool = false
     
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Reveal Hidden Secrets")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(.purple)
+        ZStack {
+            // Dark background placeholder for the camera feed.
+            Color.black.ignoresSafeArea()
+            Image(systemName: "camera.viewfinder")
+                .font(.system(size: 300))
+                .foregroundColor(.gray.opacity(0.1))
             
-            // Camera View
-            CameraView(capturedImage: $capturedImage, isAnalyzing: $isAnalyzing)
-                .frame(height: 300)
-                .cornerRadius(20)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(isScanning ? Color.blue : Color.gray, lineWidth: 3)
-                )
-                .overlay(
-                    // Scanning animation
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.clear, Color.blue.opacity(0.3), Color.clear],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .frame(width: 2)
-                        .offset(x: isScanning ? 150 : -150)
-                        .animation(
-                            Animation.easeInOut(duration: 2.0).repeatForever(autoreverses: true),
-                            value: isScanning
-                        )
-                )
-            
-            // Status Indicator
-            HStack {
-                Circle()
-                    .fill(isScanning ? Color.blue : Color.gray)
-                    .frame(width: 12, height: 12)
+            VStack {
+                Text("Reveal a Message")
+                    .font(.largeTitle)
+                    .fontWeight(.heavy)
+                    .foregroundColor(Color("AccentPurple"))
+                    .padding(.top)
                 
-                Text(isScanning ? "Scanning for hidden messages..." : "Point camera at textured surface")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            
-            // Scan Button
-            Button(action: toggleScanning) {
-                HStack {
-                    Image(systemName: isScanning ? "stop.circle.fill" : "eye.fill")
-                    Text(isScanning ? "Stop Scanning" : "Start Scanning")
-                        .fontWeight(.semibold)
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(isScanning ? Color.red : Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(15)
-            }
-            .padding(.horizontal)
-            
-            // Results
-            if !foundMessage.isEmpty {
-                VStack(spacing: 15) {
-                    Text("🎉 Secret Message Found!")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
-                    
-                    Text(foundMessage)
-                        .font(.body)
-                        .padding()
-                        .background(Color.green.opacity(0.1))
-                        .cornerRadius(10)
-                        .multilineTextAlignment(.center)
-                }
-                .padding()
-                .transition(.scale.combined(with: .opacity))
-            }
-            
-            Spacer()
-        }
-        .padding()
-        .onChange(of: capturedImage) { _, newImage in
-            if let image = newImage, isScanning {
-                scanForMessage(image)
-            }
-        }
-    }
-    
-    private func toggleScanning() {
-        isScanning.toggle()
-        
-        if !isScanning {
-            foundMessage = ""
-        }
-    }
-    
-    private func scanForMessage(_ image: UIImage) {
-        DispatchQueue.global(qos: .userInitiated).async {
-            let fingerprint = textureAnalyzer.analyzeTexture(from: image)
-            
-            if let hiddenMessage = coreDataManager.findMessage(by: fingerprint) {
-                let decryptedMessage = CryptoService.decrypt(hiddenMessage.encryptedContent ?? Data())
+                Spacer()
                 
-                DispatchQueue.main.async {
-                    withAnimation(.spring()) {
-                        self.foundMessage = decryptedMessage
-                        self.isScanning = false
+                // This logic switches between the two views.
+                if isMessageFound {
+                    // The view to display when a message is found.
+                    MessageDisplayView(
+                        message: "Meet me at the usual spot.",
+                        locationHint: "The secret coffee shop table.",
+                        similarity: 0.92
+                    )
+                } else {
+                    // The view for when the user is scanning.
+                    VStack {
+                        Text("78%")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(Color("AccentPurple"))
+                        Text("Scanning for message...")
+                            .font(.subheadline)
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(.ultraThinMaterial)
+                            .cornerRadius(12)
                     }
-                    
-                    // Mark message as revealed
-                    hiddenMessage.isRevealed = true
-                    try? hiddenMessage.managedObjectContext?.save()
+                    .padding(.bottom, 60)
                 }
+            }
+            
+            // This button is ONLY for the preview to toggle the state.
+            // We will remove this in the final functional version.
+            VStack {
+                Spacer()
+                Button("Toggle Preview State") {
+                    withAnimation {
+                        isMessageFound.toggle()
+                    }
+                }
+                .padding(.bottom)
             }
         }
     }
+}
+
+// This is a static component for displaying the found message.
+struct MessageDisplayView: View {
+    var message: String
+    var locationHint: String
+    var similarity: Double
+
+    var body: some View {
+        VStack(spacing: 15) {
+            Image(systemName: "hand.point.up.braille.fill")
+                .font(.largeTitle)
+                .foregroundColor(Color("AccentPurple"))
+            
+            Text("Hidden Message Revealed!")
+                .font(.headline)
+            
+            Text(message)
+                .font(.title2)
+                .fontWeight(.semibold)
+            
+            Divider().background(Color("AccentPurple").opacity(0.5))
+            
+            Text("Hint: \(locationHint)")
+                .font(.subheadline)
+        }
+        .padding(25)
+        .background(.ultraThinMaterial)
+        .cornerRadius(25)
+        .overlay(
+            RoundedRectangle(cornerRadius: 25)
+                .stroke(Color("AccentPurple"), lineWidth: 1)
+        )
+        .padding(.horizontal)
+    }
+}
+
+
+#Preview {
+    MessageRevealView()
 }

@@ -1,31 +1,30 @@
+// App/ContentView.swift
+
 import SwiftUI
-import CoreData
 
 struct ContentView: View {
-    @StateObject private var coreDataManager = CoreDataManager.shared
-    
     var body: some View {
+        // This TabView is the main navigation of the app.
         TabView {
-            // Hide Message Tab
-            NavigationView {
-                MessageComposerView()
-                    .environmentObject(coreDataManager)
-            }
-            .tabItem {
-                Image(systemName: "eye.slash.fill")
-                Text("Hide")
-            }
+            // First Tab: The screen for hiding a message.
+            MessageComposerView()
+                .tabItem {
+                    Label("Hide", systemImage: "eye.slash.fill")
+                }
             
-            // Reveal Message Tab
-            NavigationView {
-                MessageRevealView()
-                    .environmentObject(coreDataManager)
-            }
-            .tabItem {
-                Image(systemName: "eye.fill")
-                Text("Reveal")
-            }
+            // Second Tab: The screen for revealing a message.
+            MessageRevealView()
+                .tabItem {
+                    Label("Reveal", systemImage: "eye.fill")
+                }
         }
-        .accentColor(.purple)
+        // This applies our custom purple color to the tab icons.
+        .accentColor(Color("AccentPurple"))
+        // This forces the app into a dark theme, as per our design.
+        .preferredColorScheme(.dark)
     }
+}
+
+#Preview {
+    ContentView()
 }

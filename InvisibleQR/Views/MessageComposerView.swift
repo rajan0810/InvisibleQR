@@ -1,130 +1,83 @@
+// Views/MessageComposerView.swift
+
 import SwiftUI
 
 struct MessageComposerView: View {
-    @State private var capturedImage: UIImage?
-    @State private var isAnalyzing = false
-    @State private var messageText = ""
-    @State private var locationHint = ""
-    @State private var currentFingerprint = ""
-    @State private var confidenceScore: Double = 0.0
-    @State private var showingSuccess = false
-    
-    @StateObject private var textureAnalyzer = TextureAnalyzer()
-    @EnvironmentObject var coreDataManager: CoreDataManager
+    // These @State variables are placeholders to make the UI interactive in the preview.
+    @State private var messageText: String = ""
+    @State private var locationHint: String = ""
     
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Hide Your Secret")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(.purple)
+        ZStack {
+            // In the final app, the camera feed will be here.
+            // For now, we use a dark background to simulate the look.
+            Color.black.ignoresSafeArea()
             
-            // Camera View
-            CameraView(capturedImage: $capturedImage, isAnalyzing: $isAnalyzing)
-                .frame(height: 300)
-                .cornerRadius(20)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(confidenceScore > 0.5 ? Color.green : Color.gray, lineWidth: 3)
-                )
+            // This is a placeholder for the live camera feed to give a textured feel.
+            Image(systemName: "camera.viewfinder")
+                .font(.system(size: 300))
+                .foregroundColor(.gray.opacity(0.1))
             
-            // Confidence Indicator
-            HStack {
-                Text("Texture Quality:")
-                    .fontWeight(.medium)
+            VStack {
+                // The main title of the screen.
+                Text("Hide a Message")
+                    .font(.largeTitle)
+                    .fontWeight(.heavy)
+                    .foregroundColor(Color("AccentPurple"))
+                    .padding(.top)
                 
-                ProgressView(value: confidenceScore)
-                    .progressViewStyle(LinearProgressViewStyle(tint: confidenceScore > 0.5 ? .green : .orange))
+                Spacer()
                 
-                Text("\(Int(confidenceScore * 100))%")
-                    .fontWeight(.bold)
-                    .foregroundColor(confidenceScore > 0.5 ? .green : .orange)
-            }
-            .padding(.horizontal)
-            
-            // Message Input
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Secret Message:")
-                    .font(.headline)
-                
-                TextField("Type your secret message...", text: $messageText, axis: .vertical)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .lineLimit(3...6)
-                
-                TextField("Location hint (optional)", text: $locationHint)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .font(.caption)
-            }
-            .padding(.horizontal)
-            
-            // Hide Message Button
-            Button(action: hideMessage) {
-                HStack {
-                    Image(systemName: "eye.slash.fill")
-                    Text("Hide Message in Texture")
-                        .fontWeight(.semibold)
+                // This container holds all the input controls.
+                VStack(spacing: 20) {
+                    // Text field for the secret message.
+                    TextField("Enter your secret message...", text: $messageText)
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(15)
+                    
+                    // Text field for the location hint.
+                    TextField("Location Hint (e.g., 'Behind the coffee machine')", text: $locationHint)
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(15)
+                    
+                    // This is where the dynamic SimilarityIndicator will go.
+                    // For now, it's a static placeholder.
+                    VStack {
+                        Text("92%")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(Color("AccentPurple"))
+                        Text("Texture Clarity")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 10)
+                    
+                    // The main action button.
+                    Button {
+                        // This button does nothing for now.
+                    } label: {
+                        Label("Hide Message", systemImage: "eye.slash.fill")
+                            .font(.headline)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color("AccentPurple"))
+                            .foregroundColor(.white)
+                            .cornerRadius(20)
+                    }
                 }
-                .frame(maxWidth: .infinity)
                 .padding()
-                .background(canHideMessage ? Color.purple : Color.gray)
-                .foregroundColor(.white)
-                .cornerRadius(15)
-            }
-            .disabled(!canHideMessage)
-            .padding(.horizontal)
-            
-            Spacer()
-        }
-        .padding()
-        .onChange(of: capturedImage) { _, newImage in
-            if let image = newImage {
-                analyzeTexture(image)
-            }
-        }
-        .alert("Message Hidden Successfully!", isPresented: $showingSuccess) {
-            Button("OK") {
-                resetForm()
-            }
-        } message: {
-            Text("Your secret message has been hidden in this texture. Share the location hint with someone special!")
-        }
-    }
-    
-    private var canHideMessage: Bool {
-        !messageText.isEmpty && confidenceScore > 0.3 && !currentFingerprint.isEmpty
-    }
-    
-    private func analyzeTexture(_ image: UIImage) {
-        isAnalyzing = true
-        
-        DispatchQueue.global(qos: .userInitiated).async {
-            let fingerprint = textureAnalyzer.analyzeTexture(from: image)
-            
-            DispatchQueue.main.async {
-                self.currentFingerprint = fingerprint
-                self.confidenceScore = textureAnalyzer.confidenceScore
-                self.isAnalyzing = false
+                .background(.regularMaterial)
+                .cornerRadius(25)
+                .padding(.horizontal)
+                .padding(.bottom, 40)
             }
         }
     }
-    
-    private func hideMessage() {
-        guard canHideMessage else { return }
-        
-        coreDataManager.hideMessage(
-            messageText,
-            fingerprint: currentFingerprint,
-            locationHint: locationHint.isEmpty ? nil : locationHint
-        )
-        
-        showingSuccess = true
-    }
-    
-    private func resetForm() {
-        messageText = ""
-        locationHint = ""
-        currentFingerprint = ""
-        confidenceScore = 0.0
-        capturedImage = nil
-    }
+}
+
+#Preview {
+    MessageComposerView()
 }
