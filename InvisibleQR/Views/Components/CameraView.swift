@@ -8,7 +8,12 @@ struct CameraView: UIViewRepresentable {
     
     func makeUIView(context: Context) -> PreviewView {
         let view = PreviewView()
-        view.videoPreviewLayer.session = cameraManager.captureSession
+        
+        // Attach the same shared session
+        if view.videoPreviewLayer.session == nil {
+            view.videoPreviewLayer.session = cameraManager.captureSession
+        }
+        
         view.videoPreviewLayer.videoGravity = .resizeAspectFill
         return view
     }
@@ -18,7 +23,7 @@ struct CameraView: UIViewRepresentable {
     }
 }
 
-/// A reusable UIView subclass that directly owns an AVCaptureVideoPreviewLayer
+/// A UIView subclass backed by AVCaptureVideoPreviewLayer
 final class PreviewView: UIView {
     override class var layerClass: AnyClass {
         AVCaptureVideoPreviewLayer.self
