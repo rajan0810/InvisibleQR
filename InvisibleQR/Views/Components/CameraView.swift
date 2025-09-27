@@ -6,21 +6,25 @@ import AVFoundation
 struct CameraView: UIViewRepresentable {
     var cameraManager: CameraManager
     
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView(frame: .zero)
-        
-        let previewLayer = AVCaptureVideoPreviewLayer(session: cameraManager.captureSession)
-        previewLayer.videoGravity = .resizeAspectFill
-        view.layer.addSublayer(previewLayer)
-        
+    func makeUIView(context: Context) -> PreviewView {
+        let view = PreviewView()
+        view.videoPreviewLayer.session = cameraManager.captureSession
+        view.videoPreviewLayer.videoGravity = .resizeAspectFill
         return view
     }
     
-    func updateUIView(_ uiView: UIView, context: Context) {
-        if let previewLayer = uiView.layer.sublayers?.first as? AVCaptureVideoPreviewLayer {
-            DispatchQueue.main.async {
-                previewLayer.frame = uiView.bounds
-            }
-        }
+    func updateUIView(_ uiView: PreviewView, context: Context) {
+        uiView.videoPreviewLayer.frame = uiView.bounds
+    }
+}
+
+/// A reusable UIView subclass that directly owns an AVCaptureVideoPreviewLayer
+final class PreviewView: UIView {
+    override class var layerClass: AnyClass {
+        AVCaptureVideoPreviewLayer.self
+    }
+    
+    var videoPreviewLayer: AVCaptureVideoPreviewLayer {
+        return layer as! AVCaptureVideoPreviewLayer
     }
 }
