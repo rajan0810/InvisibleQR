@@ -58,6 +58,12 @@ struct MessageRevealView: View {
                 .padding(.bottom)
             }
         }
+        .onAppear {
+            cameraManager.start()
+        }
+        .onDisappear {
+            cameraManager.stop()
+        }
     }
 }
 

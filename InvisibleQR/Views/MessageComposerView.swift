@@ -64,9 +64,15 @@ struct MessageComposerView: View {
                 .padding(.bottom, 40)
             }
         }
+        .onAppear {
+            cameraManager.start()
+        }
+        .onDisappear {
+            cameraManager.stop()
+        }
     }
 }
 
-#Preview {
-    MessageComposerView()
-}
+//#Preview {
+//    MessageComposerView()
+//}
