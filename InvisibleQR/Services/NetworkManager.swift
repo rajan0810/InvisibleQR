@@ -27,7 +27,7 @@ class NetworkManager {
     
     // IMPORTANT: Replace with your Supabase URL and Anon Key
     private let supabase = SupabaseClient(
-      supabaseURL: URL(string: "https://https://nypszvpheqjnzvavrlhr.supabase.co")!,
+      supabaseURL: URL(string: "https://nypszvpheqjnzvavrlhr.supabase.co")!,
       supabaseKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55cHN6dnBoZXFqbnp2YXZybGhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MjkwMTYsImV4cCI6MjA3NDUwNTAxNn0.ErkUnvPeOkGxXU5NOm4Skf4mMJdVrTK-Utb9_MST2NM"
     )
 
