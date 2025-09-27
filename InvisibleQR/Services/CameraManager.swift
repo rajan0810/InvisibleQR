@@ -11,18 +11,37 @@ class CameraManager: NSObject, ObservableObject {
 
     override init() {
         super.init()
-        // Start camera session immediately when CameraManager is created
-        start()
+        checkPermissionAndStart()
+    }
+    
+    /// Checks camera permission before starting session
+    private func checkPermissionAndStart() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            // Already authorized
+            start()
+        case .notDetermined:
+            // Request permission
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                if granted {
+                    self.start()
+                } else {
+                    print("Camera access denied by user.")
+                }
+            }
+        case .denied, .restricted:
+            print("Camera access denied or restricted. Please enable it in Settings.")
+        @unknown default:
+            break
+        }
     }
     
     func start() {
-        // We do the heavy configuration on our background queue.
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
             
-            // Only configure the session if it hasn't been done already.
+            // Prevent reconfiguration if already set up
             guard self.captureSession.inputs.isEmpty else {
-                // If already configured, just ensure it's running.
                 if !self.captureSession.isRunning {
                     self.captureSession.startRunning()
                 }
@@ -32,6 +51,7 @@ class CameraManager: NSObject, ObservableObject {
             self.captureSession.beginConfiguration()
             self.captureSession.sessionPreset = .hd1920x1080
             
+            // Select the back wide-angle camera
             guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
                   let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice),
                   self.captureSession.canAddInput(videoDeviceInput) else {
@@ -43,8 +63,7 @@ class CameraManager: NSObject, ObservableObject {
             self.captureSession.addInput(videoDeviceInput)
             self.captureSession.commitConfiguration()
             
-            // Now that configuration is complete on the background thread,
-            // we dispatch the startRunning command back to the main thread.
+            // Start session on main thread
             DispatchQueue.main.async {
                 if !self.captureSession.isRunning {
                     self.captureSession.startRunning()
@@ -54,8 +73,6 @@ class CameraManager: NSObject, ObservableObject {
     }
     
     func stop() {
-        // We don’t really need to stop during tab switches anymore,
-        // but you can call this if you want to stop when app goes background.
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
             if self.captureSession.isRunning {
