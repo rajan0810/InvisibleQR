@@ -5,7 +5,6 @@ import SwiftUI
 import Combine
 
 class CameraManager: NSObject, ObservableObject {
-    
     let captureSession = AVCaptureSession()
     private let sessionQueue = DispatchQueue(label: "com.invisibleqr.sessionqueue")
 

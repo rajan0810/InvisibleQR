@@ -31,10 +31,10 @@ struct MessageComposerView: View {
                         .background(.ultraThinMaterial)
                         .cornerRadius(15)
                     
-                    TextField("Location Hint (e.g., 'Behind the coffee machine')", text: $locationHint)
-                        .padding()
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(15)
+//                    TextField("Location Hint (e.g., 'Behind the coffee machine')", text: $locationHint)
+//                        .padding()
+//                        .background(.ultraThinMaterial)
+//                        .cornerRadius(15)
                     
                     VStack {
                         Text("92%")
