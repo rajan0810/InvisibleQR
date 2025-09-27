@@ -1,18 +1,19 @@
 // Views/MessageRevealView.swift
 
 import SwiftUI
+import Combine 
 
 struct MessageRevealView: View {
-    // This toggle lets us switch between the two UI states in the preview.
     @State private var isMessageFound: Bool = false
+    
+    // Create an instance of our simple camera service.
+    @StateObject private var cameraManager = CameraManager()
     
     var body: some View {
         ZStack {
-            // Dark background placeholder for the camera feed.
-            Color.black.ignoresSafeArea()
-            Image(systemName: "camera.viewfinder")
-                .font(.system(size: 300))
-                .foregroundColor(.gray.opacity(0.1))
+            // Display the live camera view.
+            CameraView(cameraManager: cameraManager)
+                .ignoresSafeArea()
             
             VStack {
                 Text("Reveal a Message")
@@ -23,16 +24,13 @@ struct MessageRevealView: View {
                 
                 Spacer()
                 
-                // This logic switches between the two views.
                 if isMessageFound {
-                    // The view to display when a message is found.
                     MessageDisplayView(
                         message: "Meet me at the usual spot.",
                         locationHint: "The secret coffee shop table.",
                         similarity: 0.92
                     )
                 } else {
-                    // The view for when the user is scanning.
                     VStack {
                         Text("78%")
                             .font(.title)
@@ -49,8 +47,7 @@ struct MessageRevealView: View {
                 }
             }
             
-            // This button is ONLY for the preview to toggle the state.
-            // We will remove this in the final functional version.
+            // Preview-only toggle button
             VStack {
                 Spacer()
                 Button("Toggle Preview State") {
@@ -64,7 +61,7 @@ struct MessageRevealView: View {
     }
 }
 
-// This is a static component for displaying the found message.
+// No changes needed for this part
 struct MessageDisplayView: View {
     var message: String
     var locationHint: String
@@ -98,7 +95,6 @@ struct MessageDisplayView: View {
         .padding(.horizontal)
     }
 }
-
 
 #Preview {
     MessageRevealView()

@@ -1,25 +1,22 @@
 // Views/MessageComposerView.swift
 
 import SwiftUI
+import Combine 
 
 struct MessageComposerView: View {
-    // These @State variables are placeholders to make the UI interactive in the preview.
     @State private var messageText: String = ""
     @State private var locationHint: String = ""
     
+    // Create an instance of our simple camera service.
+    @StateObject private var cameraManager = CameraManager()
+    
     var body: some View {
         ZStack {
-            // In the final app, the camera feed will be here.
-            // For now, we use a dark background to simulate the look.
-            Color.black.ignoresSafeArea()
-            
-            // This is a placeholder for the live camera feed to give a textured feel.
-            Image(systemName: "camera.viewfinder")
-                .font(.system(size: 300))
-                .foregroundColor(.gray.opacity(0.1))
+            // Display the live camera view.
+            CameraView(cameraManager: cameraManager)
+                .ignoresSafeArea()
             
             VStack {
-                // The main title of the screen.
                 Text("Hide a Message")
                     .font(.largeTitle)
                     .fontWeight(.heavy)
@@ -28,22 +25,17 @@ struct MessageComposerView: View {
                 
                 Spacer()
                 
-                // This container holds all the input controls.
                 VStack(spacing: 20) {
-                    // Text field for the secret message.
                     TextField("Enter your secret message...", text: $messageText)
                         .padding()
                         .background(.ultraThinMaterial)
                         .cornerRadius(15)
                     
-                    // Text field for the location hint.
                     TextField("Location Hint (e.g., 'Behind the coffee machine')", text: $locationHint)
                         .padding()
                         .background(.ultraThinMaterial)
                         .cornerRadius(15)
                     
-                    // This is where the dynamic SimilarityIndicator will go.
-                    // For now, it's a static placeholder.
                     VStack {
                         Text("92%")
                             .font(.title)
@@ -55,10 +47,7 @@ struct MessageComposerView: View {
                     }
                     .padding(.vertical, 10)
                     
-                    // The main action button.
-                    Button {
-                        // This button does nothing for now.
-                    } label: {
+                    Button {} label: {
                         Label("Hide Message", systemImage: "eye.slash.fill")
                             .font(.headline)
                             .padding()
