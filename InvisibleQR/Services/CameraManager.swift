@@ -11,51 +11,38 @@ class CameraManager: NSObject, ObservableObject {
 
     override init() {
         super.init()
+        // We now start the camera setup as soon as the manager is created.
         checkPermissionAndStart()
     }
     
-    /// Checks camera permission before starting session
     private func checkPermissionAndStart() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
-            // Already authorized
-            start()
+            // Permission already granted.
+            self.setupSession()
         case .notDetermined:
-            // Request permission
+            // Request permission.
             AVCaptureDevice.requestAccess(for: .video) { granted in
                 if granted {
-                    self.start()
-                } else {
-                    print("Camera access denied by user.")
+                    self.setupSession()
                 }
             }
-        case .denied, .restricted:
-            print("Camera access denied or restricted. Please enable it in Settings.")
-        @unknown default:
-            break
+        default:
+            // Permission denied.
+            print("Camera access denied or restricted.")
         }
     }
     
-    func start() {
+    private func setupSession() {
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
             
-            // Prevent reconfiguration if already set up
-            guard self.captureSession.inputs.isEmpty else {
-                if !self.captureSession.isRunning {
-                    self.captureSession.startRunning()
-                }
-                return
-            }
-
             self.captureSession.beginConfiguration()
             self.captureSession.sessionPreset = .hd1920x1080
             
-            // Select the back wide-angle camera
             guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
                   let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice),
                   self.captureSession.canAddInput(videoDeviceInput) else {
-                print("Error: Could not access back camera or create input.")
                 self.captureSession.commitConfiguration()
                 return
             }
@@ -63,21 +50,8 @@ class CameraManager: NSObject, ObservableObject {
             self.captureSession.addInput(videoDeviceInput)
             self.captureSession.commitConfiguration()
             
-            // Start session on main thread
-            DispatchQueue.main.async {
-                if !self.captureSession.isRunning {
-                    self.captureSession.startRunning()
-                }
-            }
-        }
-    }
-    
-    func stop() {
-        sessionQueue.async { [weak self] in
-            guard let self = self else { return }
-            if self.captureSession.isRunning {
-                self.captureSession.stopRunning()
-            }
+            // We now start the session here and leave it running.
+            self.captureSession.startRunning()
         }
     }
 }
