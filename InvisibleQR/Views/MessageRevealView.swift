@@ -23,13 +23,14 @@ struct MessageRevealView: View {
                 
                 Spacer()
                 
+                // This UI now dynamically updates based on the ViewModel's state
                 if let message = viewModel.foundMessage {
                     MessageDisplayView(
                         message: message,
                         similarity: viewModel.similarity
                     )
                     .onTapGesture {
-                        viewModel.reset() // Tap to reset and scan again
+                        viewModel.reset() // Tap the card to scan for another message
                     }
                 } else {
                     VStack(spacing: 20) {
@@ -48,6 +49,7 @@ struct MessageRevealView: View {
         }
     }
 }
+// Add this entire struct to the bottom of MessageRevealView.swift
 
 struct MessageDisplayView: View {
     var message: String

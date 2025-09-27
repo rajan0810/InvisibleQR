@@ -4,10 +4,10 @@ import SwiftUI
 
 struct MessageComposerView: View {
     
-    // This view now creates its own ViewModel, passing in the shared cameraManager
     @StateObject private var viewModel: MessageComposerViewModel
     
     init(cameraManager: CameraManager) {
+        // This properly initializes the ViewModel with the shared cameraManager
         _viewModel = StateObject(wrappedValue: MessageComposerViewModel(cameraManager: cameraManager))
     }
     
@@ -30,14 +30,14 @@ struct MessageComposerView: View {
                         .background(.ultraThinMaterial)
                         .cornerRadius(15)
                     
-                    SimilarityIndicator(value: viewModel.textureClarity)
+                    // This is now DYNAMIC and shows the live score!
+//                    SimilarityIndicator(value: viewModel.textureClarity)
                     
-                    Text(viewModel.statusMessage)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .animation(nil, value: viewModel.statusMessage)
-                        .frame(height: 30)
+//                    Text(viewModel.statusMessage)
+//                        .font(.caption).foregroundStyle(.secondary)
+//                        .multilineTextAlignment(.center)
+//                        .animation(nil, value: viewModel.statusMessage)
+//                        .frame(height: 30)
 
                     Button {
                         Task { await viewModel.hideMessage() }
@@ -56,7 +56,6 @@ struct MessageComposerView: View {
                     .cornerRadius(20)
                     .disabled(viewModel.messageText.isEmpty || viewModel.textureClarity < 0.7 || viewModel.isHiding)
                     .opacity(viewModel.messageText.isEmpty || viewModel.textureClarity < 0.7 ? 0.6 : 1.0)
-
                 }
                 .padding()
                 .background(.regularMaterial)
@@ -73,6 +72,7 @@ struct MessageComposerView: View {
         }
     }
 }
+// Add this entire struct to the bottom of MessageComposerView.swift
 
 struct SimilarityIndicator: View {
     var value: Double

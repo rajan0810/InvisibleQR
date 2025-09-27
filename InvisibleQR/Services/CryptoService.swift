@@ -6,7 +6,7 @@ import Foundation
 class CryptoService {
     // IMPORTANT: For a real app, generate this key securely.
     // For a hackathon, a hardcoded key is okay. It MUST be 32 characters.
-    private let key = SymmetricKey(data: "Th!sIsMyV3ryS3cureK3yF0rHacks!".data(using: .utf8)!)
+    private let key = SymmetricKey(data: "this-is-my-super-secret-key!!123".data(using: .utf8)!)
 
     func encrypt(_ message: String) throws -> String? {
         guard let data = message.data(using: .utf8) else { return nil }
