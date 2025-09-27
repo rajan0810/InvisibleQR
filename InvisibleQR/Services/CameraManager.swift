@@ -9,9 +9,10 @@ class CameraManager: NSObject, ObservableObject {
     let captureSession = AVCaptureSession()
     private let sessionQueue = DispatchQueue(label: "com.invisibleqr.sessionqueue")
 
-    // We don't need to do anything in init()
     override init() {
         super.init()
+        // Start camera session immediately when CameraManager is created
+        start()
     }
     
     func start() {
@@ -53,6 +54,8 @@ class CameraManager: NSObject, ObservableObject {
     }
     
     func stop() {
+        // We don’t really need to stop during tab switches anymore,
+        // but you can call this if you want to stop when app goes background.
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
             if self.captureSession.isRunning {
