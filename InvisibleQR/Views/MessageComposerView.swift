@@ -1,61 +1,62 @@
 // Views/MessageComposerView.swift
 
 import SwiftUI
-import Combine 
 
 struct MessageComposerView: View {
-    @State private var messageText: String = ""
-    @State private var locationHint: String = ""
     
-    // Create an instance of our simple camera service.
-    @ObservedObject var cameraManager: CameraManager
+    // This view now creates its own ViewModel, passing in the shared cameraManager
+    @StateObject private var viewModel: MessageComposerViewModel
+    
+    init(cameraManager: CameraManager) {
+        _viewModel = StateObject(wrappedValue: MessageComposerViewModel(cameraManager: cameraManager))
+    }
     
     var body: some View {
         ZStack {
-            // Display the live camera view.
-            CameraView(cameraManager: cameraManager)
+            CameraView(cameraManager: viewModel.cameraManager)
                 .ignoresSafeArea()
             
             VStack {
                 Text("Hide a Message")
-                    .font(.largeTitle)
-                    .fontWeight(.heavy)
+                    .font(.largeTitle).fontWeight(.heavy)
                     .foregroundColor(Color("AccentPurple"))
                     .padding(.top)
                 
                 Spacer()
                 
-                VStack(spacing: 20) {
-                    TextField("Enter your secret message...", text: $messageText)
+                VStack(spacing: 15) {
+                    TextField("Enter your secret message...", text: $viewModel.messageText)
                         .padding()
                         .background(.ultraThinMaterial)
                         .cornerRadius(15)
                     
-//                    TextField("Location Hint (e.g., 'Behind the coffee machine')", text: $locationHint)
-//                        .padding()
-//                        .background(.ultraThinMaterial)
-//                        .cornerRadius(15)
+                    SimilarityIndicator(value: viewModel.textureClarity)
                     
-                    VStack {
-                        Text("92%")
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(Color("AccentPurple"))
-                        Text("Texture Clarity")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    Text(viewModel.statusMessage)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .animation(nil, value: viewModel.statusMessage)
+                        .frame(height: 30)
+
+                    Button {
+                        Task { await viewModel.hideMessage() }
+                    } label: {
+                        if viewModel.isHiding {
+                            ProgressView().progressViewStyle(.circular).tint(.white)
+                        } else {
+                            Label("Hide Message", systemImage: "eye.slash.fill")
+                        }
                     }
-                    .padding(.vertical, 10)
-                    
-                    Button {} label: {
-                        Label("Hide Message", systemImage: "eye.slash.fill")
-                            .font(.headline)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color("AccentPurple"))
-                            .foregroundColor(.white)
-                            .cornerRadius(20)
-                    }
+                    .font(.headline)
+                    .padding()
+                    .frame(maxWidth: .infinity, minHeight: 50)
+                    .background(Color("AccentPurple"))
+                    .foregroundColor(.white)
+                    .cornerRadius(20)
+                    .disabled(viewModel.messageText.isEmpty || viewModel.textureClarity < 0.7 || viewModel.isHiding)
+                    .opacity(viewModel.messageText.isEmpty || viewModel.textureClarity < 0.7 ? 0.6 : 1.0)
+
                 }
                 .padding()
                 .background(.regularMaterial)
@@ -63,11 +64,30 @@ struct MessageComposerView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 40)
             }
+            .animation(.easeInOut, value: viewModel.textureClarity)
+        }
+        .alert("Notice", isPresented: $viewModel.showAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(viewModel.alertMessage)
         }
     }
 }
 
-#Preview {
-    // We pass a new, temporary CameraManager just for the preview to work.
-    MessageComposerView(cameraManager: CameraManager())
+struct SimilarityIndicator: View {
+    var value: Double
+
+    var body: some View {
+        VStack {
+            ZStack {
+                Circle().stroke(Color.gray.opacity(0.3), lineWidth: 10)
+                Circle().trim(from: 0.0, to: CGFloat(value))
+                    .stroke(Color("AccentPurple"), style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                Text(String(format: "%.0f%%", value * 100)).font(.title2).fontWeight(.bold)
+            }
+            .frame(width: 80, height: 80)
+            Text("Texture Clarity").font(.caption).foregroundStyle(.secondary)
+        }
+    }
 }

@@ -3,32 +3,35 @@
 import AVFoundation
 import SwiftUI
 import Combine
+import CoreImage
 
-class CameraManager: NSObject, ObservableObject {
+class CameraManager: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
+    
+    // The @Published property is now a CGImage, which is thread-safe.
+    @Published var capturedFrame: CGImage?
+    
     let captureSession = AVCaptureSession()
+    private let videoOutput = AVCaptureVideoDataOutput()
     private let sessionQueue = DispatchQueue(label: "com.invisibleqr.sessionqueue")
+    private let context = CIContext()
 
     override init() {
         super.init()
-        // We now start the camera setup as soon as the manager is created.
         checkPermissionAndStart()
     }
     
     private func checkPermissionAndStart() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
-            // Permission already granted.
-            self.setupSession()
+            setupSession()
         case .notDetermined:
-            // Request permission.
             AVCaptureDevice.requestAccess(for: .video) { granted in
                 if granted {
                     self.setupSession()
                 }
             }
         default:
-            // Permission denied.
-            print("Camera access denied or restricted.")
+            print("Camera access denied.")
         }
     }
     
@@ -45,12 +48,30 @@ class CameraManager: NSObject, ObservableObject {
                 self.captureSession.commitConfiguration()
                 return
             }
-            
             self.captureSession.addInput(videoDeviceInput)
-            self.captureSession.commitConfiguration()
             
-            // We now start the session here and leave it running.
+            self.videoOutput.setSampleBufferDelegate(self, queue: self.sessionQueue)
+            guard self.captureSession.canAddOutput(self.videoOutput) else {
+                self.captureSession.commitConfiguration()
+                return
+            }
+            self.captureSession.addOutput(self.videoOutput)
+            
+            self.captureSession.commitConfiguration()
             self.captureSession.startRunning()
+        }
+    }
+    
+    nonisolated func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+        
+        // On the background thread, convert the unsafe CVPixelBuffer to a safe CGImage.
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+        guard let cgImage = self.context.createCGImage(ciImage, from: ciImage.extent) else { return }
+        
+        // Now, safely dispatch the CGImage to the main thread.
+        DispatchQueue.main.async {
+            self.capturedFrame = cgImage
         }
     }
 }

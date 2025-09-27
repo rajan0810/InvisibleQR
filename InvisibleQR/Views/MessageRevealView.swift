@@ -1,42 +1,40 @@
 // Views/MessageRevealView.swift
 
 import SwiftUI
-import Combine 
 
 struct MessageRevealView: View {
-    @State private var isMessageFound: Bool = false
     
-    // Create an instance of our simple camera service.
-    @ObservedObject var cameraManager: CameraManager
+    @StateObject private var viewModel: MessageRevealViewModel
     
+    init(cameraManager: CameraManager) {
+        _viewModel = StateObject(wrappedValue: MessageRevealViewModel(cameraManager: cameraManager))
+    }
+
     var body: some View {
         ZStack {
-            // Display the live camera view.
-            CameraView(cameraManager: cameraManager)
+            CameraView(cameraManager: viewModel.cameraManager)
                 .ignoresSafeArea()
             
             VStack {
                 Text("Reveal a Message")
-                    .font(.largeTitle)
-                    .fontWeight(.heavy)
+                    .font(.largeTitle).fontWeight(.heavy)
                     .foregroundColor(Color("AccentPurple"))
                     .padding(.top)
                 
                 Spacer()
                 
-                if isMessageFound {
+                if let message = viewModel.foundMessage {
                     MessageDisplayView(
-                        message: "Meet me at the usual spot.",
-                        locationHint: "The secret coffee shop table.",
-                        similarity: 0.92
+                        message: message,
+                        similarity: viewModel.similarity
                     )
+                    .onTapGesture {
+                        viewModel.reset() // Tap to reset and scan again
+                    }
                 } else {
-                    VStack {
-                        Text("78%")
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(Color("AccentPurple"))
-                        Text("Scanning for message...")
+                    VStack(spacing: 20) {
+                        ProgressView().progressViewStyle(.circular)
+                        Text(viewModel.statusMessage)
                             .font(.subheadline)
                             .foregroundColor(.white)
                             .padding()
@@ -46,57 +44,27 @@ struct MessageRevealView: View {
                     .padding(.bottom, 60)
                 }
             }
-            
-            // Preview-only toggle button
-            VStack {
-                Spacer()
-                Button("Toggle Preview State") {
-                    withAnimation {
-                        isMessageFound.toggle()
-                    }
-                }
-                .padding(.bottom)
-            }
+            .animation(.easeInOut, value: viewModel.foundMessage)
         }
     }
 }
 
-// No changes needed for this part
 struct MessageDisplayView: View {
     var message: String
-    var locationHint: String
     var similarity: Double
 
     var body: some View {
         VStack(spacing: 15) {
-            Image(systemName: "hand.point.up.braille.fill")
-                .font(.largeTitle)
-                .foregroundColor(Color("AccentPurple"))
-            
-            Text("Hidden Message Revealed!")
-                .font(.headline)
-            
-            Text(message)
-                .font(.title2)
-                .fontWeight(.semibold)
-            
+            Image(systemName: "hand.point.up.braille.fill").font(.largeTitle).foregroundColor(Color("AccentPurple"))
+            Text("Hidden Message Revealed!").font(.headline)
+            Text(message).font(.title2).fontWeight(.semibold)
             Divider().background(Color("AccentPurple").opacity(0.5))
-            
-            Text("Hint: \(locationHint)")
-                .font(.subheadline)
+            Text(String(format: "Match Confidence: %.1f%%", similarity * 100)).font(.subheadline)
         }
         .padding(25)
         .background(.ultraThinMaterial)
         .cornerRadius(25)
-        .overlay(
-            RoundedRectangle(cornerRadius: 25)
-                .stroke(Color("AccentPurple"), lineWidth: 1)
-        )
+        .overlay(RoundedRectangle(cornerRadius: 25).stroke(Color("AccentPurple"), lineWidth: 1))
         .padding(.horizontal)
     }
-}
-
-#Preview {
-    // We pass a new, temporary CameraManager just for the preview to work.
-    MessageRevealView(cameraManager: CameraManager())
 }
