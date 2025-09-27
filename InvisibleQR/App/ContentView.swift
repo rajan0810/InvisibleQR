@@ -3,24 +3,24 @@
 import SwiftUI
 
 struct ContentView: View {
+    // 1. Create a single CameraManager here as a @StateObject.
+    // This instance will be the single source of truth for the camera.
+    @StateObject private var cameraManager = CameraManager()
+    
     var body: some View {
-        // This TabView is the main navigation of the app.
         TabView {
-            // First Tab: The screen for hiding a message.
-            MessageComposerView()
+            // 2. Pass the same cameraManager instance into both views.
+            MessageComposerView(cameraManager: cameraManager)
                 .tabItem {
                     Label("Hide", systemImage: "eye.slash.fill")
                 }
             
-            // Second Tab: The screen for revealing a message.
-            MessageRevealView()
+            MessageRevealView(cameraManager: cameraManager)
                 .tabItem {
                     Label("Reveal", systemImage: "eye.fill")
                 }
         }
-        // This applies our custom purple color to the tab icons.
         .accentColor(Color("AccentPurple"))
-        // This forces the app into a dark theme, as per our design.
         .preferredColorScheme(.dark)
     }
 }

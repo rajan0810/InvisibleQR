@@ -7,7 +7,7 @@ struct MessageRevealView: View {
     @State private var isMessageFound: Bool = false
     
     // Create an instance of our simple camera service.
-    @StateObject private var cameraManager = CameraManager()
+    @ObservedObject var cameraManager: CameraManager
     
     var body: some View {
         ZStack {
@@ -103,5 +103,6 @@ struct MessageDisplayView: View {
 }
 
 #Preview {
-    MessageRevealView()
+    // We pass a new, temporary CameraManager just for the preview to work.
+    MessageRevealView(cameraManager: CameraManager())
 }

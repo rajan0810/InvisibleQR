@@ -7,37 +7,47 @@ import Combine
 class CameraManager: NSObject, ObservableObject {
     
     let captureSession = AVCaptureSession()
-    
     private let sessionQueue = DispatchQueue(label: "com.invisibleqr.sessionqueue")
 
+    // We don't need to do anything in init()
     override init() {
         super.init()
     }
     
     func start() {
+        // We do the heavy configuration on our background queue.
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
             
-            if self.captureSession.inputs.isEmpty {
-                self.captureSession.beginConfiguration()
-                
-                // THIS IS THE FIX: Changed the incorrect preset name back to the correct one.
-                self.captureSession.sessionPreset = .hd1920x1080
-                
-                guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
-                      let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice),
-                      self.captureSession.canAddInput(videoDeviceInput) else {
-                    print("Error: Could not access back camera or create input.")
-                    self.captureSession.commitConfiguration()
-                    return
+            // Only configure the session if it hasn't been done already.
+            guard self.captureSession.inputs.isEmpty else {
+                // If already configured, just ensure it's running.
+                if !self.captureSession.isRunning {
+                    self.captureSession.startRunning()
                 }
-                
-                self.captureSession.addInput(videoDeviceInput)
+                return
+            }
+
+            self.captureSession.beginConfiguration()
+            self.captureSession.sessionPreset = .hd1920x1080
+            
+            guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
+                  let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice),
+                  self.captureSession.canAddInput(videoDeviceInput) else {
+                print("Error: Could not access back camera or create input.")
                 self.captureSession.commitConfiguration()
+                return
             }
             
-            if !self.captureSession.isRunning {
-                self.captureSession.startRunning()
+            self.captureSession.addInput(videoDeviceInput)
+            self.captureSession.commitConfiguration()
+            
+            // Now that configuration is complete on the background thread,
+            // we dispatch the startRunning command back to the main thread.
+            DispatchQueue.main.async {
+                if !self.captureSession.isRunning {
+                    self.captureSession.startRunning()
+                }
             }
         }
     }

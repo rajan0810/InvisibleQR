@@ -8,7 +8,7 @@ struct MessageComposerView: View {
     @State private var locationHint: String = ""
     
     // Create an instance of our simple camera service.
-    @StateObject private var cameraManager = CameraManager()
+    @ObservedObject var cameraManager: CameraManager
     
     var body: some View {
         ZStack {
@@ -73,6 +73,7 @@ struct MessageComposerView: View {
     }
 }
 
-//#Preview {
-//    MessageComposerView()
-//}
+#Preview {
+    // We pass a new, temporary CameraManager just for the preview to work.
+    MessageComposerView(cameraManager: CameraManager())
+}
